@@ -1,181 +1,330 @@
-# db-driven-api
+# 🚀 Database-Driven API
+
+<div align="center">
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/Python-3.x-blue.svg)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.1-black.svg)](https://flask.palletsprojects.com/)
 [![Supabase](https://img.shields.io/badge/Backend-Supabase-green.svg)](https://supabase.io/)
 
-A generic, database-driven REST API backend built with Python, Flask, and Supabase. This project serves as a robust template for creating a service where the API endpoints are primarily responsible for querying and serving data from a pre-defined database schema. It includes authentication, environment configuration, and a clear structure for easy extension.
+*A generic, database-driven REST API backend built with Python, Flask, and Supabase*
 
-The example business case used in this repository is a **Marine Business Directory**.
+[Features](#-features) • [Getting Started](#-getting-started) • [API Documentation](#-api-endpoint-documentation) • [Database Schema](#-database-schema)
 
----
-
-## Table of Contents
-
-- [Core Concept](#core-concept)
-- [Technology Stack](#technology-stack)
-- [Features](#features)
-- [API Endpoint Documentation](#api-endpoint-documentation)
-- [Database Schema](#database-schema)
-- [Getting Started](#getting-started)
-  - [Prerequisites](#prerequisites)
-  - [1. Set Up Supabase](#1-set-up-supabase)
-  - [2. Local Setup](#2-local-setup)
-  - [3. Run the Application](#3-run-the-application)
-- [Usage & Testing](#usage--testing)
-- [License](#license)
+</div>
 
 ---
 
-## Core Concept
+## 📖 Overview
 
-The "database-driven" approach means that the application's logic, structure, and capabilities are fundamentally shaped by the database schema. Instead of having complex business logic in the application layer, the API acts as a clean and efficient interface to the data, making it easy to manage and scale.
+A robust and scalable REST API template that demonstrates the **database-driven architecture** approach. This project serves as a production-ready foundation for building APIs where endpoints primarily query and serve data from a well-defined database schema.
 
-This repository demonstrates this concept by building an API on top of a comprehensive Supabase PostgreSQL schema.
+> **Example Use Case:** Marine Business Directory - A comprehensive platform for discovering marine businesses, marinas, and boat services.
 
-## Technology Stack
+### 💡 Core Concept
 
-- **Backend Framework**: [Flask](https://flask.palletsprojects.com/)
-- **Database**: [Supabase](https://supabase.io/) (PostgreSQL)
-- **Python Libraries**:
-  - `supabase-py`: Official Python client for Supabase.
-  - `python-dotenv`: For managing environment variables.
-  - `Flask-Cors`: For handling Cross-Origin Resource Sharing (CORS).
-- **Development Tool**: [Postman](https://www.postman.com/) for API testing.
-
-## Features
-
--   **RESTful API**: Clean, well-defined endpoints for interacting with data.
--   **Database-First Design**: A comprehensive SQL schema that defines the application's structure.
--   **Token-Based Authentication**: Secure endpoints using a Bearer Token.
--   **Environment Configuration**: All sensitive keys and settings are managed via a `.env` file.
--   **CORS Enabled**: Allows the API to be accessed from different domains.
--   **Health Check**: A public `/health` endpoint for monitoring service status.
--   **Scalable Architecture**: Built on Supabase for robust, scalable backend infrastructure.
+The **database-driven approach** means your application's structure and capabilities are fundamentally shaped by the database schema. Instead of complex business logic scattered across the application layer, the API acts as a clean, efficient interface to your data - making it easier to manage, scale, and maintain.
 
 ---
 
-## API Endpoint Documentation
+## 🛠️ Technology Stack
 
-All protected endpoints require an `Authorization: Bearer {{api_token}}` header.
+| Technology | Purpose |
+|------------|---------|
+| **[Flask](https://flask.palletsprojects.com/)** | Lightweight Python web framework |
+| **[Supabase](https://supabase.io/)** | PostgreSQL database with built-in APIs |
+| **[supabase-py](https://github.com/supabase-community/supabase-py)** | Official Python client |
+| **[python-dotenv](https://github.com/theskumar/python-dotenv)** | Environment variable management |
+| **[Flask-CORS](https://flask-cors.readthedocs.io/)** | Cross-Origin Resource Sharing support |
+
+---
+
+## ✨ Features
+
+- 🔌 **RESTful API** - Clean, well-defined endpoints following REST principles
+- 🗄️ **Database-First Design** - Comprehensive SQL schema drives application structure
+- 🔐 **Token-Based Authentication** - Secure endpoints using Bearer Token authorization
+- ⚙️ **Environment Configuration** - Sensitive data managed via `.env` files
+- 🌐 **CORS Enabled** - API accessible from different domains
+- 💚 **Health Check Endpoint** - Monitor service status and database connectivity
+- 📈 **Scalable Architecture** - Built on Supabase for robust, enterprise-grade infrastructure
+- 📊 **Analytics Ready** - Built-in tracking for search queries and user interactions
+
+---
+
+## 📡 API Endpoint Documentation
+
+> **Authentication:** All protected endpoints require an `Authorization: Bearer {{api_token}}` header.
 
 ### Public Endpoints
 
-| Method | Endpoint      | Description                                                                                             |
-| :----- | :------------ | :------------------------------------------------------------------------------------------------------ |
-| `GET`  | `/health`     | Checks the health of the API and its database connection. Returns a `200 OK` with status `healthy`.       |
+| Method | Endpoint | Description | Response |
+|--------|----------|-------------|----------|
+| `GET` | `/health` | Health check for API and database | `200 OK` with status |
 
-### Protected API Endpoints
+### Protected Endpoints
 
-| Method | Endpoint             | Description                                                                    |
-| :----- | :------------------- | :----------------------------------------------------------------------------- |
-| `GET`  | `/api/categories`    | Retrieves a list of all available company categories as an `ID: Name` mapping. |
-| `GET`  | `/api/locations`     | Retrieves a list of all available locations as an `ID: Name` mapping.        |
-| `GET`  | `/api/search`        | Searches for companies based on query parameters.                              |
-| `GET`  | `/api/user/status`   | Retrieves the subscription status and query limits for a given user.           |
-| `GET`  | `/api/stats`         | Retrieves internal system statistics (total counts for tables).                |
+#### 📂 Reference Data
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/categories` | Get all business categories (ID: Name mapping) |
+| `GET` | `/api/locations` | Get all available locations (ID: Name mapping) |
+| `GET` | `/api/stats` | Get system statistics (table counts) |
+
+#### 🔍 Search & Users
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/search` | Search companies by category, location, and term |
+| `GET` | `/api/user/status` | Get user subscription status and query limits |
+
+---
+
+### 🔎 Detailed Endpoint Specifications
 
 #### `GET /api/search`
 
-Search for companies with the required `category_id` and `location_id`.
+Search for companies with filtering options.
 
-**Query Parameters:**
+**Required Parameters:**
 
-| Parameter     | Type      | Required | Description                                                                 |
-| :------------ | :-------- | :------- | :-------------------------------------------------------------------------- |
-| `category_id` | `integer` | **Yes**  | The ID of the category to search within.                                    |
-| `location_id` | `integer` | **Yes**  | The ID of the location to search within.                                    |
-| `search_term` | `string`  | No       | An optional term to filter results by company name, description, or keywords. |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `category_id` | `integer` | Category ID to filter by |
+| `location_id` | `integer` | Location ID to filter by |
 
-**Example:**
-`{{baseUrl}}/api/search?category_id=1&location_id=1&search_term=luxury`
+**Optional Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `search_term` | `string` | Filter by company name, description, or keywords |
+
+**Example Request:**
+```http
+GET /api/search?category_id=1&location_id=1&search_term=luxury
+Authorization: Bearer your_api_token_here
+```
+
+---
 
 #### `GET /api/user/status`
 
-Retrieves the subscription status for a user.
+Retrieve user subscription information and query limits.
 
-**Query Parameters:**
+**Required Parameters:**
 
-| Parameter      | Type     | Required | Description                                     |
-| :------------- | :------- | :------- | :---------------------------------------------- |
-| `phone_number` | `string` | **Yes**  | The user's phone number, including country code. |
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `phone_number` | `string` | User's phone number with country code |
 
-**Example:**
-`{{baseUrl}}/api/user/status?phone_number=+6591234567`
-
----
-
-## Database Schema
-
-The database schema is defined in `SQL.txt` and includes tables for managing:
-
--   `users`: User profiles, subscription tiers, and query limits.
--   `companies`: Business listings with details, locations, and categories.
--   `categories`: Business categories (e.g., Marinas, Boat Repair).
--   `locations`: Geographical locations.
--   `conversations`: Logs of user interactions.
--   `search_queries`: Analytics on user search behavior.
--   ...and more for logging, feedback, and metrics.
+**Example Request:**
+```http
+GET /api/user/status?phone_number=+6591234567
+Authorization: Bearer your_api_token_here
+```
 
 ---
 
-## Getting Started
+## 🗃️ Database Schema
 
-Follow these steps to set up and run the project locally.
+The comprehensive database schema (`SQL.txt`) includes:
+
+| Table | Purpose |
+|-------|---------|
+| `users` | User profiles, subscription tiers, query limits |
+| `companies` | Business listings with details and contact info |
+| `categories` | Business classification (Marinas, Repair, etc.) |
+| `locations` | Geographic location management |
+| `conversations` | User interaction logs |
+| `search_queries` | Search analytics and patterns |
+| `feedback` | User feedback and ratings |
+| `api_logs` | API usage tracking |
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
--   Python 3.8+ and Pip
--   A free [Supabase](https://supabase.com/) account
--   [Git](https://git-scm.com/)
+Before you begin, ensure you have:
 
-### 1. Set Up Supabase
+- ✅ Python 3.8 or higher
+- ✅ pip (Python package manager)
+- ✅ [Supabase](https://supabase.com/) account (free tier available)
+- ✅ [Git](https://git-scm.com/) installed
 
-1.  **Create a Supabase Project**:
-    -   Go to your [Supabase Dashboard](https://app.supabase.io/) and create a new project.
-    -   Save your **Project URL** and **`service_role` Key**.
+---
 
-2.  **Set Up the Database Schema**:
-    -   Navigate to the **SQL Editor** in your Supabase project.
-    -   Open the `SQL.txt` file from this repository, copy its content, and run it in the SQL Editor to create the tables and functions.
-    -   (Optional) For testing, open `SQL_Mock Data.txt`, copy its content, and run it to populate your database with sample data.
+### Step 1: Set Up Supabase
 
-### 2. Local Setup
+#### 1.1 Create a Project
 
-1.  **Clone the Repository**:
-    ```sh
-    git clone https://github.com/your-username/db-driven-api.git
-    cd db-driven-api
-    ```
+1. Navigate to your [Supabase Dashboard](https://app.supabase.io/)
+2. Click **"New Project"**
+3. Fill in project details and create
+4. Save your **Project URL** and **Service Role Key** (found in Project Settings → API)
 
-2.  **Create a Virtual Environment**:
-    ```sh
-    python -m venv venv
-    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
-    ```
+#### 1.2 Initialize Database Schema
 
-3.  **Install Dependencies**:
-    ```sh
-    pip install -r requirements.txt
-    ```
+1. Open the **SQL Editor** in your Supabase dashboard
+2. Copy the contents of `SQL.txt` from this repository
+3. Paste and execute the SQL to create tables and functions
+4. **(Optional)** Run `SQL_Mock Data.txt` to populate with sample data
 
-4.  **Configure Environment Variables**:
-    -   Create a file named `.env` in the root of the project.
-    -   Copy the following content into it and replace the placeholder values with your Supabase credentials and a secure API token of your choice.
+---
 
-    ```env
-    # Supabase credentials from your project's "API" settings
-    SUPABASE_URL="https://your-project-ref.supabase.co"
-    SUPABASE_SERVICE_KEY="your-supabase-service-role-key"
+### Step 2: Local Setup
 
-    # A secure, custom token for your API
-    API_TOKEN="ssg_secure_token_2025"
-    ```
+#### 2.1 Clone the Repository
 
-### 3. Run the Application
+```bash
+git clone https://github.com/your-username/db-driven-api.git
+cd db-driven-api
+```
 
-Start the Flask development server with the following command:
+#### 2.2 Create Virtual Environment
 
-```sh
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate it
+# On macOS/Linux:
+source venv/bin/activate
+# On Windows:
+venv\Scripts\activate
+```
+
+#### 2.3 Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+#### 2.4 Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+# Supabase Configuration
+SUPABASE_URL="https://your-project-ref.supabase.co"
+SUPABASE_SERVICE_KEY="your-supabase-service-role-key"
+
+# API Security
+API_TOKEN="your_secure_token_here"
+```
+
+> ⚠️ **Security Note:** Keep your `.env` file private and never commit it to version control!
+
+---
+
+### Step 3: Run the Application
+
+Start the Flask development server:
+
+```bash
 python app.py
+```
+
+You should see output similar to:
+
+```
+ * Serving Flask app 'app'
+ * Debug mode: on
+ * Running on http://127.0.0.1:5000
+Press CTRL+C to quit
+```
+
+🎉 **Success!** Your API is now running at `http://localhost:5000`
+
+---
+
+## 🧪 Usage & Testing
+
+### Testing with Postman
+
+The easiest way to test your API is using the included Postman collection.
+
+#### 1. Import Collection
+
+- Open Postman
+- Click **Import** → **File**
+- Select `postman_collection.json` from this repository
+
+#### 2. Configure Variables
+
+In the imported collection:
+
+1. Go to **Variables** tab
+2. Set `baseUrl` to `http://localhost:5000`
+3. Set `api_token` to your token from `.env`
+
+#### 3. Start Testing
+
+- Begin with **Public → Health Check** to verify the server
+- Explore protected endpoints with pre-configured requests
+- Modify parameters to test different scenarios
+
+### Testing with cURL
+
+```bash
+# Health Check
+curl http://localhost:5000/health
+
+# Search Companies (requires authentication)
+curl -H "Authorization: Bearer your_api_token_here" \
+  "http://localhost:5000/api/search?category_id=1&location_id=1"
+```
+
+---
+
+## 📁 Project Structure
+
+```
+db-driven-api/
+├── app.py                    # Main Flask application
+├── requirements.txt          # Python dependencies
+├── .env                      # Environment variables (create this)
+├── SQL.txt                   # Database schema
+├── SQL_Mock Data.txt         # Sample data
+├── postman_collection.json   # API testing collection
+├── README.md                 # This file
+└── LICENSE                   # MIT License
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- Built with [Flask](https://flask.palletsprojects.com/)
+- Powered by [Supabase](https://supabase.io/)
+- Inspired by database-driven architecture principles
+
+---
+
+<div align="center">
+
+**[⬆ Back to Top](#-database-driven-api)**
+
+Made with ❤️ by developers, for developers
+
+</div>
