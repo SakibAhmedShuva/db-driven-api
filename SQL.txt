@@ -1,0 +1,327 @@
+-- ================================================
+-- SUPABASE DATABASE SCHEMA FOR SSG WHATSAPP AI
+-- ================================================
+
+-- Enable UUID extension
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- ================================================
+-- TABLE: categories
+-- Purpose: Store business categories
+-- ================================================
+CREATE TABLE categories (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    description TEXT,
+    icon VARCHAR(50),
+    display_order INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_categories_name ON categories(name);
+CREATE INDEX idx_categories_active ON categories(is_active);
+
+-- ================================================
+-- TABLE: locations
+-- Purpose: Store geographical locations
+-- ================================================
+CREATE TABLE locations (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    country VARCHAR(100),
+    region VARCHAR(100),
+    latitude DECIMAL(10, 8),
+    longitude DECIMAL(11, 8),
+    display_order INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_locations_name ON locations(name);
+CREATE INDEX idx_locations_country ON locations(country);
+CREATE INDEX idx_locations_active ON locations(is_active);
+
+-- ================================================
+-- TABLE: companies
+-- Purpose: Store company listings
+-- ================================================
+CREATE TABLE companies (
+    id SERIAL PRIMARY KEY,
+    company_name VARCHAR(255) NOT NULL,
+    description TEXT,
+    website_link VARCHAR(500),
+    advertising_tier VARCHAR(20) DEFAULT 'Free' CHECK (advertising_tier IN ('Premium', 'Enhanced', 'Logo', 'Free')),
+    category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    location_id INTEGER NOT NULL REFERENCES locations(id) ON DELETE CASCADE,
+    keywords TEXT[],
+    contact_email VARCHAR(255),
+    contact_phone VARCHAR(50),
+    address TEXT,
+    logo_url VARCHAR(500),
+    is_active BOOLEAN DEFAULT TRUE,
+    featured BOOLEAN DEFAULT FALSE,
+    views_count INTEGER DEFAULT 0,
+    clicks_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_companies_category ON companies(category_id);
+CREATE INDEX idx_companies_location ON companies(location_id);
+CREATE INDEX idx_companies_tier ON companies(advertising_tier);
+CREATE INDEX idx_companies_active ON companies(is_active);
+CREATE INDEX idx_companies_keywords ON companies USING GIN(keywords);
+
+-- ================================================
+-- TABLE: users
+-- Purpose: Store user profiles and subscription info
+-- ================================================
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    phone_number VARCHAR(20) UNIQUE NOT NULL,
+    full_name VARCHAR(255),
+    email VARCHAR(255),
+    role VARCHAR(50) DEFAULT 'boat_owner',
+    vessel_size VARCHAR(50),
+    vessel_name VARCHAR(255),
+    subscription_tier VARCHAR(20) DEFAULT 'free' CHECK (subscription_tier IN ('free', 'premium')),
+    subscription_start_date TIMESTAMP WITH TIME ZONE,
+    subscription_end_date TIMESTAMP WITH TIME ZONE,
+    queries_today INTEGER DEFAULT 0,
+    max_daily_queries INTEGER DEFAULT 10,
+    total_queries INTEGER DEFAULT 0,
+    onboarding_completed BOOLEAN DEFAULT FALSE,
+    preferences JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Index for fast phone number lookups
+CREATE INDEX idx_users_phone_number ON users(phone_number);
+CREATE INDEX idx_users_subscription_tier ON users(subscription_tier);
+CREATE INDEX idx_users_last_active ON users(last_active_at);
+
+-- ================================================
+-- TABLE: conversations
+-- Purpose: Store message history for context
+-- ================================================
+CREATE TABLE conversations (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role VARCHAR(20) NOT NULL CHECK (role IN ('user', 'assistant', 'system')),
+    content TEXT NOT NULL,
+    content_type VARCHAR(20) DEFAULT 'text' CHECK (content_type IN ('text', 'image', 'audio', 'video')),
+    media_url TEXT,
+    metadata JSONB DEFAULT '{}',
+    tokens_used INTEGER,
+    model_used VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Indexes for conversation retrieval
+CREATE INDEX idx_conversations_user_id ON conversations(user_id);
+CREATE INDEX idx_conversations_created_at ON conversations(created_at DESC);
+CREATE INDEX idx_conversations_user_created ON conversations(user_id, created_at DESC);
+
+-- ================================================
+-- TABLE: search_queries
+-- Purpose: Log searches for analytics
+-- ================================================
+CREATE TABLE search_queries (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    category_id VARCHAR(10),
+    category_name VARCHAR(255),
+    location_id VARCHAR(10),
+    location_name VARCHAR(255),
+    search_term TEXT,
+    results_count INTEGER DEFAULT 0,
+    top_result_company VARCHAR(255),
+    user_query TEXT,
+    extracted_intent JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Indexes for analytics queries
+CREATE INDEX idx_search_queries_user_id ON search_queries(user_id);
+CREATE INDEX idx_search_queries_category ON search_queries(category_name);
+CREATE INDEX idx_search_queries_location ON search_queries(location_name);
+CREATE INDEX idx_search_queries_created_at ON search_queries(created_at DESC);
+
+-- ================================================
+-- TABLE: api_logs
+-- Purpose: Track API calls for debugging/monitoring
+-- ================================================
+CREATE TABLE api_logs (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    endpoint VARCHAR(255) NOT NULL,
+    method VARCHAR(10) NOT NULL,
+    request_params JSONB,
+    response_status INTEGER,
+    response_time_ms INTEGER,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_api_logs_created_at ON api_logs(created_at DESC);
+CREATE INDEX idx_api_logs_endpoint ON api_logs(endpoint);
+
+-- ================================================
+-- TABLE: user_feedback
+-- Purpose: Store user feedback and ratings
+-- ================================================
+CREATE TABLE user_feedback (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    conversation_id UUID REFERENCES conversations(id) ON DELETE SET NULL,
+    rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+    feedback_text TEXT,
+    feedback_type VARCHAR(50) CHECK (feedback_type IN ('helpful', 'not_helpful', 'incorrect', 'bug', 'feature_request', 'other')),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_user_feedback_user_id ON user_feedback(user_id);
+CREATE INDEX idx_user_feedback_rating ON user_feedback(rating);
+CREATE INDEX idx_user_feedback_created_at ON user_feedback(created_at DESC);
+
+-- ================================================
+-- TABLE: system_metrics
+-- Purpose: Track system performance metrics
+-- ================================================
+CREATE TABLE system_metrics (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    metric_type VARCHAR(100) NOT NULL,
+    metric_value NUMERIC,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_system_metrics_type ON system_metrics(metric_type);
+CREATE INDEX idx_system_metrics_created_at ON system_metrics(created_at DESC);
+
+-- ================================================
+-- TABLE: subscription_history
+-- Purpose: Track subscription changes and payments
+-- ================================================
+CREATE TABLE subscription_history (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    previous_tier VARCHAR(20),
+    new_tier VARCHAR(20) NOT NULL,
+    change_reason VARCHAR(255),
+    amount_paid NUMERIC(10, 2),
+    payment_method VARCHAR(50),
+    payment_status VARCHAR(50),
+    valid_from TIMESTAMP WITH TIME ZONE NOT NULL,
+    valid_until TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_subscription_history_user_id ON subscription_history(user_id);
+CREATE INDEX idx_subscription_history_created_at ON subscription_history(created_at DESC);
+
+-- ================================================
+-- FUNCTIONS & TRIGGERS
+-- ================================================
+
+-- Function to update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Trigger for users table
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Function to reset daily query count
+CREATE OR REPLACE FUNCTION reset_daily_queries()
+RETURNS void AS $$
+BEGIN
+    UPDATE users SET queries_today = 0;
+END;
+$$ language 'plpgsql';
+
+-- Function to increment user queries
+CREATE OR REPLACE FUNCTION increment_user_query(p_user_id UUID)
+RETURNS void AS $$
+BEGIN
+    UPDATE users 
+    SET 
+        queries_today = queries_today + 1,
+        total_queries = total_queries + 1,
+        last_active_at = NOW()
+    WHERE id = p_user_id;
+END;
+$$ language 'plpgsql';
+
+-- Function to get conversation context (last N messages)
+CREATE OR REPLACE FUNCTION get_conversation_context(
+    p_user_id UUID,
+    p_limit INTEGER DEFAULT 10
+)
+RETURNS TABLE (
+    role VARCHAR(20),
+    content TEXT,
+    created_at TIMESTAMP WITH TIME ZONE
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT c.role, c.content, c.created_at
+    FROM conversations c
+    WHERE c.user_id = p_user_id
+    ORDER BY c.created_at DESC
+    LIMIT p_limit;
+END;
+$$ language 'plpgsql';
+
+-- ================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- ================================================
+
+-- Enable RLS on all tables
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE search_queries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_feedback ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subscription_history ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can only read their own data
+CREATE POLICY "Users can view own data" ON users
+    FOR SELECT USING (auth.uid()::text = id::text);
+
+-- Policy: Users can update their own profile
+CREATE POLICY "Users can update own profile" ON users
+    FOR UPDATE USING (auth.uid()::text = id::text);
+
+-- Policy: Users can view their own conversations
+CREATE POLICY "Users can view own conversations" ON conversations
+    FOR SELECT USING (auth.uid()::text = user_id::text);
+
+-- Policy: Users can view their own search queries
+CREATE POLICY "Users can view own searches" ON search_queries
+    FOR SELECT USING (auth.uid()::text = user_id::text);
+
+-- ================================================
+-- COMMENTS FOR DOCUMENTATION
+-- ================================================
+
+COMMENT ON TABLE users IS 'Stores user profiles, subscription status, and usage metrics';
+COMMENT ON TABLE conversations IS 'Message history for providing conversation context to AI';
+COMMENT ON TABLE search_queries IS 'Logs all search queries for analytics and improvement';
+COMMENT ON TABLE api_logs IS 'Tracks API performance and errors for monitoring';
+COMMENT ON TABLE user_feedback IS 'Stores user feedback and ratings for quality improvement';
+COMMENT ON TABLE system_metrics IS 'System-wide performance and usage metrics';
+COMMENT ON TABLE subscription_history IS 'Audit trail of subscription changes and payments';
+
+COMMENT ON COLUMN users.preferences IS 'JSON object storing user preferences like language, notification settings';
+COMMENT ON COLUMN conversations.metadata IS 'JSON object storing additional message metadata like processing time, model version';
+COMMENT ON COLUMN search_queries.extracted_intent IS 'JSON object containing the extracted category, location, and search term';
