@@ -1,0 +1,321 @@
+{
+	"info": {
+		"_postman_id": "a8c5d3b1-2d98-4e9f-9b1e-9a1c2b3d4f5e",
+		"name": "NOW Eric T",
+		"description": "A collection for the Marine Business Directory API defined in `app.py`. This API allows searching for marine-related companies, checking user status, and retrieving system statistics.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Public",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Checks the health of the API. Should return a status of 'healthy'."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "API Endpoints",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/categories",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"categories"
+							]
+						},
+						"description": "Retrieves a list of all available company categories as an ID: Name mapping."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Locations",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/locations",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"locations"
+							]
+						},
+						"description": "Retrieves a list of all available locations as an ID: Name mapping."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Companies",
+					"item": [
+						{
+							"name": "Search by Category and Location",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/search?category_id=1&location_id=1",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"search"
+									],
+									"query": [
+										{
+											"key": "category_id",
+											"value": "1",
+											"description": "ID of the category (e.g., '1' for Marinas)."
+										},
+										{
+											"key": "location_id",
+											"value": "1",
+											"description": "ID of the location (e.g., '1' for Singapore)."
+										}
+									]
+								},
+								"description": "Search for companies with the required `category_id` and `location_id` parameters."
+							},
+							"response": []
+						},
+						{
+							"name": "Search with a Search Term",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/search?category_id=1&location_id=1&search_term=luxury",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"search"
+									],
+									"query": [
+										{
+											"key": "category_id",
+											"value": "1"
+										},
+										{
+											"key": "location_id",
+											"value": "1"
+										},
+										{
+											"key": "search_term",
+											"value": "luxury",
+											"description": "Optional search term to filter by company name, description, or keywords."
+										}
+									]
+								},
+								"description": "Performs a search including an optional `search_term` to filter results further."
+							},
+							"response": []
+						},
+						{
+							"name": "Search - Missing Required Params",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/search?category_id=1",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"search"
+									],
+									"query": [
+										{
+											"key": "category_id",
+											"value": "1"
+										}
+									]
+								},
+								"description": "This request is expected to fail with a 400 Bad Request error because the `location_id` is missing."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Get User Status",
+					"item": [
+						{
+							"name": "Get Premium User Status",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/user/status?phone_number=+6591234567",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"status"
+									],
+									"query": [
+										{
+											"key": "phone_number",
+											"value": "+6591234567",
+											"description": "The user's phone number, including country code."
+										}
+									]
+								},
+								"description": "Retrieves the subscription status for a known premium user."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Free User Status",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/user/status?phone_number=+6598765432",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"status"
+									],
+									"query": [
+										{
+											"key": "phone_number",
+											"value": "+6598765432"
+										}
+									]
+								},
+								"description": "Retrieves the subscription status for a known free user."
+							},
+							"response": []
+						},
+						{
+							"name": "Get New User Status",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/api/user/status?phone_number=+60123456789",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"api",
+										"user",
+										"status"
+									],
+									"query": [
+										{
+											"key": "phone_number",
+											"value": "+60123456789"
+										}
+									]
+								},
+								"description": "Retrieves the default free tier status for a user not present in the system."
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Get System Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/stats",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"stats"
+							]
+						},
+						"description": "Retrieves internal system statistics, such as total counts for categories, locations, companies, and users."
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{api_token}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "noauth"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000",
+			"type": "string",
+			"description": "The base URL for the API."
+		},
+		{
+			"key": "api_token",
+			"value": "ssg_secure_token_2025",
+			"type": "string",
+			"description": "The API token for authorized endpoints."
+		}
+	]
+}
